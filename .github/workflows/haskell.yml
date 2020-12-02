@@ -1,0 +1,16 @@
+on: [push]
+name: build
+jobs:
+  runhaskell:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-haskell@v1.1
+        with:
+          enable-stack: true
+          ghc-version: 'latest'
+          cabal-version: 'latest'
+          stack-version: 'latest'
+          
+      - run: stack test
