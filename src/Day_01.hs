@@ -8,20 +8,31 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Maybe
 
-solution :: Maybe String
-solution = fmap (show . multiplyPair) $ findPairSummingTo 2020 input
+solution :: (Maybe String, Maybe String)
+solution =
+  ( (fmap (show . multiplyElements) $ findPairSummingTo 2020 input),
+    (fmap (show . multiplyElements) $ findTripleSummingTo 2020 input)
+  )
 
-multiplyPair :: (Integer, Integer) -> Integer
-multiplyPair (a, b) = a * b
+multiplyElements :: [Integer] -> Integer
+multiplyElements xs = foldr (*) 1 xs
 
-findPairSummingTo :: Integer -> [Integer] -> Maybe (Integer, Integer)
+findPairSummingTo :: Integer -> [Integer] -> Maybe [Integer]
 findPairSummingTo targetSum [] = Nothing
-findPairSummingTo targetSum xs = do
-  let lookup = Map.fromList (map makePair xs)
-        where
-          makePair x = (x, x)
-  let firstMatch = List.find (\x -> Map.member (targetSum - x) lookup) xs
-  fmap (\n -> (n, (targetSum - n))) firstMatch
+findPairSummingTo targetSum candidates = do
+  let lookup = Map.fromList (map toTwinTuple candidates) where toTwinTuple x = (x, x)
+  let firstMatch = List.find (\x -> Map.member (targetSum - x) lookup) candidates
+  fmap (\n -> [n, (targetSum - n)]) firstMatch
+
+findTripleSummingTo :: Integer -> [Integer] -> Maybe [Integer]
+findTripleSummingTo targetSum candidates
+  | null candidates = Nothing
+  | otherwise =
+    let (x : xs) = candidates
+        maybePair = findPairSummingTo (targetSum - x) (List.delete x xs)
+     in case maybePair of
+          Just pair -> Just (x : pair)
+          Nothing -> (findTripleSummingTo targetSum xs)
 
 input =
   [ 1337,
