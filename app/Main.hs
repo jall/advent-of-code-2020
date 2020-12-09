@@ -5,6 +5,7 @@ import Data.Maybe (fromMaybe)
 import qualified Day_01
 import qualified Day_02
 import qualified Day_03
+import qualified Day_04
 
 main :: IO ()
 main =
@@ -15,7 +16,8 @@ main =
           formatDay
           [ Day_01.solution,
             Day_02.solution,
-            Day_03.solution
+            Day_03.solution,
+            Day_04.solution
           ]
 
 formatDay :: (Maybe String, Maybe String) -> Int -> [String]

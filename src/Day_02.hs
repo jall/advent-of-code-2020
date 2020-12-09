@@ -4,7 +4,7 @@ module Day_02
 where
 
 import Data.Bits (xor)
-import Text.Regex.TDFA
+import Text.Regex.PCRE
 
 solution :: (Maybe String, Maybe String)
 solution =
