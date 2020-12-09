@@ -3,34 +3,48 @@ module Day_02
   )
 where
 
+import Data.Bits (xor)
 import Text.Regex.TDFA
 
 solution :: (Maybe String, Maybe String)
 solution =
-  ( Just $ show . length . (filter isValidPassword) . (map parseRow) $ input,
-    Just "Not implemented"
-  )
+  let rows = map parseRow input
+   in ( Just $ show . length . (filter isValidPasswordAmount) $ rows,
+        Just $ show . length . (filter isValidPasswordPlace) $ rows
+      )
 
-isValidPassword :: Row -> Bool
-isValidPassword row =
-  let keyCharacterCount = length $ filter (\c -> c == ((keyCharacter row) !! 0)) $ password row
-   in (atLeast row) <= keyCharacterCount && keyCharacterCount <= (atMost row)
+isValidPasswordAmount :: Row -> Bool
+isValidPasswordAmount row =
+  let atLeast = firstNumber row
+      atMost = secondNumber row
+      char = keyCharacter row
+      keyCharacterCount = length $ filter (\c -> c == char) $ password row
+   in atLeast <= keyCharacterCount && keyCharacterCount <= atMost
+
+isValidPasswordPlace :: Row -> Bool
+isValidPasswordPlace row =
+  -- 1-index in problem, 0-index in Haskell
+  let firstPosition = (firstNumber row) - 1
+      secondPosition = (secondNumber row) - 1
+      char = keyCharacter row
+      pass = password row
+   in xor ((pass !! firstPosition) == char) ((pass !! secondPosition) == char)
 
 parseRow :: String -> Row
 parseRow s =
   let regexMatch = s =~ "([0-9]+)-([0-9]+) ([a-z]): ([a-z]*)" :: (String, String, String, [String])
       (_, _, _, matches) = regexMatch
-      atLeast = read (matches !! 0) :: Int
-      atMost = read (matches !! 1) :: Int
-      keyCharacter = matches !! 2
+      firstNumber = read (matches !! 0) :: Int
+      secondNumber = read (matches !! 1) :: Int
+      keyCharacter = matches !! 2 !! 0
       password = matches !! 3
-   in Row {atLeast, atMost, keyCharacter, password}
+   in Row {password, keyCharacter, firstNumber, secondNumber}
 
 data Row = Row
   { password :: String,
-    keyCharacter :: String,
-    atLeast :: Int,
-    atMost :: Int
+    keyCharacter :: Char,
+    firstNumber :: Int,
+    secondNumber :: Int
   }
   deriving (Show)
 
