@@ -23,6 +23,7 @@ dependencies:
   - containers
   - raw-strings-qq
   - regex-pcre
+  - sort
   - split
 
 default-extensions:

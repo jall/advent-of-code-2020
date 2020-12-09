@@ -6,6 +6,7 @@ import qualified Day_01
 import qualified Day_02
 import qualified Day_03
 import qualified Day_04
+import qualified Day_05
 
 main :: IO ()
 main =
@@ -17,7 +18,8 @@ main =
           [ Day_01.solution,
             Day_02.solution,
             Day_03.solution,
-            Day_04.solution
+            Day_04.solution,
+            Day_05.solution
           ]
 
 formatDay :: (Maybe String, Maybe String) -> Int -> [String]
