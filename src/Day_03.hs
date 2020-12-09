@@ -8,14 +8,13 @@ solution =
   let grid = (createRightInfiniteGrid input)
       start = (0, 0)
    in ( Just . show $ toboggan grid start (3, 1) 0,
-        Just . show $
-          foldr (*) 1 $
-            [ toboggan grid start (1, 1) 0,
-              toboggan grid start (3, 1) 0,
-              toboggan grid start (5, 1) 0,
-              toboggan grid start (7, 1) 0,
-              toboggan grid start (1, 2) 0
-            ]
+        Just . show . product $
+          [ toboggan grid start (1, 1) 0,
+            toboggan grid start (3, 1) 0,
+            toboggan grid start (5, 1) 0,
+            toboggan grid start (7, 1) 0,
+            toboggan grid start (1, 2) 0
+          ]
       )
 
 toboggan :: Grid -> Point -> Gradient -> Int -> Int

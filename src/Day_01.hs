@@ -10,12 +10,9 @@ import Data.Maybe
 
 solution :: (Maybe String, Maybe String)
 solution =
-  ( (fmap (show . multiplyElements) $ findPairSummingTo 2020 input),
-    (fmap (show . multiplyElements) $ findTripleSummingTo 2020 input)
+  ( fmap (show . product) $ findPairSummingTo 2020 input,
+    fmap (show . product) $ findTripleSummingTo 2020 input
   )
-
-multiplyElements :: [Integer] -> Integer
-multiplyElements xs = foldr (*) 1 xs
 
 findPairSummingTo :: Integer -> [Integer] -> Maybe [Integer]
 findPairSummingTo targetSum [] = Nothing
