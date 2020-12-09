@@ -21,6 +21,9 @@ description: Please see the README on GitHub at <https://github.com/jall/advent-
 dependencies:
   - base >= 4.7 && < 5
   - containers
+  - regex-tdfa
+
+default-extensions: NamedFieldPuns
 
 library:
   source-dirs: src

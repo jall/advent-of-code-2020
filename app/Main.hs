@@ -3,9 +3,18 @@ module Main where
 import Control.Monad (sequence_)
 import Data.Maybe (fromMaybe)
 import qualified Day_01
+import qualified Day_02
 
 main :: IO ()
-main = sequence_ $ map putStrLn $ concat $ mapWithIndex formatDay [Day_01.solution]
+main =
+  sequence_ $
+    map putStrLn $
+      concat $
+        mapWithIndex
+          formatDay
+          [ Day_01.solution,
+            Day_02.solution
+          ]
 
 formatDay :: (Maybe String, Maybe String) -> Int -> [String]
 formatDay (part1, part2) index = do
