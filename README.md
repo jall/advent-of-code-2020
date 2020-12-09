@@ -1,4 +1,4 @@
-# Advent of code 2018
+# Advent of code 2020
 
 Learning Haskell by going through the [2020 Advent of code](https://adventofcode.com/2020).
 
