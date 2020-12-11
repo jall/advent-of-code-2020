@@ -31,14 +31,17 @@ library
       Day_05
       Day_06
       Day_07
+      Day_08
   other-modules:
       Paths_advent_of_code
   hs-source-dirs:
       src
-  default-extensions: NamedFieldPuns QuasiQuotes
+  default-extensions: NamedFieldPuns NegativeLiterals QuasiQuotes
   build-depends:
       base >=4.7 && <5
     , containers
+    , either
+    , lens
     , raw-strings-qq
     , regex-pcre
     , sort
@@ -51,12 +54,14 @@ executable advent-of-code-exe
       Paths_advent_of_code
   hs-source-dirs:
       app
-  default-extensions: NamedFieldPuns QuasiQuotes
+  default-extensions: NamedFieldPuns NegativeLiterals QuasiQuotes
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       advent-of-code
     , base >=4.7 && <5
     , containers
+    , either
+    , lens
     , raw-strings-qq
     , regex-pcre
     , sort
@@ -70,12 +75,14 @@ test-suite advent-of-code-test
       Paths_advent_of_code
   hs-source-dirs:
       test
-  default-extensions: NamedFieldPuns QuasiQuotes
+  default-extensions: NamedFieldPuns NegativeLiterals QuasiQuotes
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       advent-of-code
     , base >=4.7 && <5
     , containers
+    , either
+    , lens
     , raw-strings-qq
     , regex-pcre
     , sort
