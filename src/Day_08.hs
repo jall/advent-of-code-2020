@@ -16,14 +16,14 @@ solution =
         mapLeft show $
           let instructions = input
               indices = findIndices isJmpOrNop instructions
-              maybeIndex = find (findWorkingMutation instructions) indices
+              maybeIndex = find (isWorkingMutation instructions) indices
            in case maybeIndex of
                 Nothing -> Right 0
                 Just correctIndex -> run (mutateOnce instructions correctIndex) [] 0 0
   )
 
-findWorkingMutation :: [Instruction] -> Int -> Bool
-findWorkingMutation instructions indexToMutate = isLeft $ run (mutateOnce instructions indexToMutate) [] 0 0
+isWorkingMutation :: [Instruction] -> Int -> Bool
+isWorkingMutation instructions indexToMutate = isLeft $ run (mutateOnce instructions indexToMutate) [] 0 0
 
 mutateOnce :: [Instruction] -> Int -> [Instruction]
 mutateOnce instructions indexToMutate =
@@ -31,14 +31,12 @@ mutateOnce instructions indexToMutate =
       newOpcode = case opCode of
         "jmp" -> "nop"
         "nop" -> "jmp"
-        otherwise -> opCode
+        _ -> opCode
       newInstruction = (newOpcode, sign, value)
    in prefixInstructions ++ newInstruction : suffixInstructions
 
 isJmpOrNop :: Instruction -> Bool
 isJmpOrNop (opCode, _, _) = opCode == "jmp" || opCode == "nop"
-
--- TODO Iterate through all permutations of instructions swapping a single jmp/nop until one works
 
 run :: [Instruction] -> [Int] -> Int -> Int -> Either Int Int
 run instructions visitedPositions accumulator currentPosition
