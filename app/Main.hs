@@ -12,6 +12,7 @@ import qualified Day_07
 import qualified Day_08
 import qualified Day_09
 import qualified Day_10
+import Utils (mapWithIndex)
 
 main :: IO ()
 main =
@@ -40,6 +41,3 @@ formatDay (part1, part2) index = do
     ("b. " ++ (fromMaybe fail part2)),
     ""
     ]
-
-mapWithIndex :: (a -> Int -> b) -> [a] -> [b]
-mapWithIndex f l = zipWith f l [0 ..]
