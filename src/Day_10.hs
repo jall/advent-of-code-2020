@@ -8,7 +8,7 @@ import Data.List (sort)
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Debug.Trace (trace)
-import Utils (mapWithIndex)
+import Utils (countIf, mapWithIndex)
 
 solution :: (Maybe String, Maybe String)
 solution =
@@ -48,9 +48,6 @@ countChildPaths nodes recur parent
      in if null children
           then 1
           else sum $ map recur children
-
-countIf :: (a -> Bool) -> [a] -> Int
-countIf p = length . filter p
 
 zipAdjacent :: [b] -> [(b, b)]
 zipAdjacent x = zip x $ tail x
