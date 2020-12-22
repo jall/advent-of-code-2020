@@ -31,4 +31,4 @@ day7 = testCase "Day 7" $ assertEqual "" Day_07.solution (Just "278", Just "4515
 
 day8 = testCase "Day 8" $ assertEqual "" Day_08.solution (Just "1179", Just "1089")
 
-day9 = testCase "Day 9" $ assertEqual "" Day_09.solution (Just "133015568", Nothing)
+day9 = testCase "Day 9" $ assertEqual "" Day_09.solution (Just "133015568", Just "16107959")

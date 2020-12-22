@@ -4,14 +4,24 @@ module Day_09
 where
 
 import Data.Either.Combinators (mapLeft)
-import Data.List (delete, find)
+import Data.List (delete, find, sort)
 import Data.Maybe (isJust)
+import Debug.Trace (trace)
 
 solution :: (Maybe String, Maybe String)
 solution =
   let preambleLength = 25
-      firstNotSum = findNotSumOfPreamble input preambleLength
-   in (fmap show firstNotSum, Nothing)
+      message = input
+      maybeFirstNotSum = findNotSumOfPreamble message preambleLength
+   in ( fmap show maybeFirstNotSum,
+        do
+          firstNotSum <- maybeFirstNotSum
+          stuff <- findContiguousList message firstNotSum
+          let sorted = sort stuff
+              largest = last sorted
+              smallest = head sorted
+           in Just . show $ smallest + largest
+      )
 
 findNotSumOfPreamble :: [Int] -> Int -> Maybe Int
 findNotSumOfPreamble message preambleLength
@@ -28,7 +38,23 @@ findNotSumOfPreamble message preambleLength
              in findNotSumOfPreamble nextMessage preambleLength
 
 isSumOfPair :: [Int] -> Int -> Bool
-isSumOfPair possibilities sum = isJust $ find (\x -> (sum - x) `elem` (delete x possibilities)) possibilities
+isSumOfPair possibilities total = isJust $ find (\x -> (total - x) `elem` (delete x possibilities)) possibilities
+
+findContiguousList :: [Int] -> Int -> Maybe [Int]
+findContiguousList message total
+  | null message = Nothing
+  | otherwise =
+    -- Lazily create a list of all contiguous lists from the first item
+    -- E.g. message = [1,2,3,...], grouped = [[1],[1,2],[1,2,3],...]
+    let grouped = scanl1 (++) $ map (: []) message
+        candidates = takeWhile (\candidates -> sum candidates <= total) grouped
+     in if null candidates
+          then Nothing
+          else
+            let candidate = last candidates
+             in if sum candidate == total
+                  then Just candidate
+                  else findContiguousList (tail message) total
 
 testInput =
   [ 35,
