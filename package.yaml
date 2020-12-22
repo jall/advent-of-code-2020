@@ -23,6 +23,7 @@ dependencies:
   - containers
   - either
   - lens
+  - matrix
   - memoize
   - raw-strings-qq
   - regex-pcre

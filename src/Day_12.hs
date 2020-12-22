@@ -3,41 +3,61 @@ module Day_12
   )
 where
 
+import qualified Data.Matrix as Matrix
+
 solution :: (Maybe String, Maybe String)
 solution =
   let actions = map parseAction input
-      start = (0, 0)
-      end = navigate actions (start, East)
-   in ( Just . show $ manhattanDistance start end,
-        Nothing
+      shipStart = (0, 0)
+   in ( Just . show $
+          let waypoint = (1, 0)
+              shipEnd = navigateDirectly actions (shipStart, waypoint)
+           in manhattanDistance shipStart shipEnd,
+        Just . show $
+          let waypoint = (10, 1)
+              shipEnd = navigateByWaypoint actions (shipStart, waypoint)
+           in manhattanDistance shipStart shipEnd
       )
 
 manhattanDistance :: Coord -> Coord -> Int
 manhattanDistance (x1, y1) (x2, y2) = abs (x2 - x1) + abs (y2 - y1)
 
-navigate :: [Action] -> (Coord, Direction) -> Coord
-navigate [] ((x, y), _) = (x, y)
-navigate ((action, amount) : actions) ((x, y), direction) = case action of
-  Direction North -> navigate actions ((x, y + amount), direction)
-  Direction West -> navigate actions ((x - amount, y), direction)
-  Direction South -> navigate actions ((x, y - amount), direction)
-  Direction East -> navigate actions ((x + amount, y), direction)
-  Turn Leftwards -> navigate actions ((x, y), changeDirection direction Leftwards amount)
-  Turn Rightwards -> navigate actions ((x, y), changeDirection direction Rightwards amount)
-  -- Recurse with a "new" action to move in the current direction
-  Move Forward -> navigate ((Direction direction, amount) : actions) ((x, y), direction)
+navigateDirectly :: [Action] -> (Coord, Coord) -> Coord
+navigateDirectly [] (ship, _) = ship
+navigateDirectly ((action, amount) : actions) ((x, y), waypoint) = case action of
+  Direction direction -> navigateDirectly actions (moveInDirection (x, y) direction amount, waypoint)
+  Turn turn -> navigateDirectly actions ((x, y), changeDirection waypoint turn amount)
+  Move Forward -> navigateDirectly actions (moveToWaypoint (x, y) waypoint amount, waypoint)
 
-changeDirection :: Direction -> Turn -> Int -> Direction
-changeDirection start turn amount =
-  let transform = if turn == Leftwards then prevInCycle else nextInCycle
+navigateByWaypoint :: [Action] -> (Coord, Coord) -> Coord
+navigateByWaypoint [] (ship, _) = ship
+navigateByWaypoint ((action, amount) : actions) (ship, (x, y)) = case action of
+  Direction direction -> navigateByWaypoint actions (ship, moveInDirection (x, y) direction amount)
+  Turn turn -> navigateByWaypoint actions (ship, changeDirection (x, y) turn amount)
+  Move Forward -> navigateByWaypoint actions (moveToWaypoint ship (x, y) amount, (x, y))
+
+moveInDirection :: Coord -> Direction -> Int -> Coord
+moveInDirection (x, y) direction amount
+  | direction == North = (x, y + amount)
+  | direction == West = (x - amount, y)
+  | direction == South = (x, y - amount)
+  | direction == East = (x + amount, y)
+
+moveToWaypoint :: Coord -> Coord -> Int -> Coord
+moveToWaypoint ship (dx, dy) numberOfMoves =
+  let move = (\(x, y) -> (x + dx, y + dy))
+   in iterate move ship !! numberOfMoves
+
+changeDirection :: Coord -> Turn -> Int -> Coord
+changeDirection (x, y) turn amount =
+  -- https://en.wikipedia.org/wiki/Rotation_matrix#Common_rotations
+  let rotationMatrix = Matrix.fromList 2 2 $ if turn == Clockwise then [0, -1, 1, 0] else [0, 1, -1, 0]
       numberOfTransforms = amount `div` 90
-   in iterate transform start !! numberOfTransforms
-
-nextInCycle :: (Enum a, Bounded a, Eq a) => a -> a
-nextInCycle x = if x == maxBound then minBound else succ x
-
-prevInCycle :: (Enum a, Bounded a, Eq a) => a -> a
-prevInCycle x = if x == minBound then maxBound else pred x
+      rotate = Matrix.multStd rotationMatrix
+      startMatrix = Matrix.fromList 2 1 [x, y]
+      endMatrix = iterate rotate startMatrix !! numberOfTransforms
+      nextX : nextY : _ = Matrix.toList endMatrix
+   in (nextX, nextY)
 
 parseAction :: String -> Action
 parseAction s =
@@ -48,23 +68,21 @@ parseAction s =
         "S" -> (Direction South, amount)
         "E" -> (Direction East, amount)
         "W" -> (Direction West, amount)
-        "L" -> (Turn Leftwards, amount)
-        "R" -> (Turn Rightwards, amount)
+        "L" -> (Turn Clockwise, amount)
+        "R" -> (Turn Anticlockwise, amount)
         "F" -> (Move Forward, amount)
 
 type Ship = (Coord, Direction)
 
 type Coord = (Int, Int)
 
-data Direction = North | East | South | West deriving (Bounded, Eq, Enum, Show)
+data Direction = North | East | South | West deriving (Eq, Show)
 
-data Turn = Leftwards | Rightwards deriving (Eq, Show)
+data Turn = Clockwise | Anticlockwise deriving (Eq, Show)
 
 data Move = Forward deriving (Eq, Show)
 
 data ActionType = Direction Direction | Turn Turn | Move Move deriving (Eq, Show)
-
--- data ActionType = N | S | E | W | L | R | F
 
 type Action = (ActionType, Int)
 

@@ -23,19 +23,20 @@ main =
       concat $
         mapWithIndex
           formatDay
-          [ Day_01.solution,
-            Day_02.solution,
-            Day_03.solution,
-            Day_04.solution,
-            Day_05.solution,
-            Day_06.solution,
-            Day_07.solution,
-            Day_08.solution,
-            Day_09.solution,
-            Day_10.solution,
-            Day_11.solution,
-            Day_12.solution
-          ]
+          -- [ Day_01.solution,
+          --   Day_02.solution,
+          --   Day_03.solution,
+          --   Day_04.solution,
+          --   Day_05.solution,
+          --   Day_06.solution,
+          --   Day_07.solution,
+          --   Day_08.solution,
+          --   Day_09.solution,
+          --   Day_10.solution,
+          --   Day_11.solution,
+          --   Day_12.solution
+          -- ]
+          [Day_12.solution]
 
 formatDay :: (Maybe String, Maybe String) -> Int -> [String]
 formatDay (part1, part2) index = do

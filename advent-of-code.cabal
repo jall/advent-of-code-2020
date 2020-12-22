@@ -47,6 +47,7 @@ library
     , containers
     , either
     , lens
+    , matrix
     , memoize
     , raw-strings-qq
     , regex-pcre
@@ -68,6 +69,7 @@ executable advent-of-code-exe
     , containers
     , either
     , lens
+    , matrix
     , memoize
     , raw-strings-qq
     , regex-pcre
@@ -90,6 +92,7 @@ test-suite advent-of-code-test
     , containers
     , either
     , lens
+    , matrix
     , memoize
     , raw-strings-qq
     , regex-pcre
