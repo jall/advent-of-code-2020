@@ -4,6 +4,7 @@ module Day_11
 where
 
 import Control.Lens (element, (^?))
+import Data.List (find)
 import Data.Maybe (mapMaybe)
 import Utils (countIf, mapWithIndex)
 
@@ -11,29 +12,35 @@ solution :: (Maybe String, Maybe String)
 solution =
   let grid = input
    in ( Just . show $
-          let stableGrid = updateGridUntilStable grid
+          let stableGrid = updateGridUntilStable (updateGrid updateSeatWhenAdjacent) grid
            in countOccupied stableGrid,
-        Nothing
+        Just . show $
+          let stableGrid = updateGridUntilStable (updateGrid updateSeatWhenVisible) grid
+           in countOccupied stableGrid
       )
 
 countOccupied :: Grid -> Int
 countOccupied = foldr (\row total -> total + countIf (== occupied) row) 0
 
-updateGridUntilStable :: Grid -> Grid
-updateGridUntilStable grid =
-  let nextGrid = updateGrid grid
+updateGridUntilStable :: GridUpdater -> Grid -> Grid
+updateGridUntilStable gridUpdater grid =
+  let nextGrid = gridUpdater grid
    in if grid == nextGrid
         then grid
-        else updateGridUntilStable nextGrid
+        else updateGridUntilStable gridUpdater nextGrid
 
-updateGrid :: Grid -> Grid
-updateGrid grid =
+type GridUpdater = Grid -> Grid
+
+updateGrid :: SeatUpdater -> GridUpdater
+updateGrid seatUpdater grid =
   mapWithIndex
-    (\row y -> mapWithIndex (\seat x -> updateSeat grid seat (x, y)) row)
+    (\row y -> mapWithIndex (\seat x -> seatUpdater grid seat (x, y)) row)
     grid
 
-updateSeat :: Grid -> Char -> (Int, Int) -> Char
-updateSeat grid seat (x, y) =
+type SeatUpdater = Grid -> Seat -> Coord -> Seat
+
+updateSeatWhenAdjacent :: SeatUpdater
+updateSeatWhenAdjacent grid seat (x, y) =
   let numberOfOccupiedSeats = length $ filter (== occupied) $ adjacentSeats grid (x, y)
    in case () of
         _
@@ -41,7 +48,7 @@ updateSeat grid seat (x, y) =
           | seat == occupied && numberOfOccupiedSeats >= 4 -> empty
           | otherwise -> seat
 
-adjacentSeats :: Grid -> (Int, Int) -> [Char]
+adjacentSeats :: Grid -> Coord -> [Seat]
 adjacentSeats grid (x, y) =
   mapMaybe
     (findSeat grid)
@@ -55,7 +62,46 @@ adjacentSeats grid (x, y) =
       (x + 1, y + 1)
     ]
 
-findSeat :: Grid -> (Int, Int) -> Maybe Char
+updateSeatWhenVisible :: SeatUpdater
+updateSeatWhenVisible grid seat (x, y) =
+  let numberOfVisibleSeats = length $ filter (== occupied) $ visibleSeats grid (x, y)
+   in case () of
+        _
+          | seat == empty && numberOfVisibleSeats == 0 -> occupied
+          | seat == occupied && numberOfVisibleSeats >= 5 -> empty
+          | otherwise -> seat
+
+visibleSeats :: Grid -> Coord -> [Seat]
+visibleSeats grid (x, y) =
+  mapMaybe
+    ( \coordUpdater ->
+        let direction = seatsInDirection grid coordUpdater (x, y)
+            firstVisibleSeat = find isVisible direction
+         in firstVisibleSeat
+    )
+    [ (\(x, y) -> (x - 1, y - 1)),
+      (\(x, y) -> (x - 1, y)),
+      (\(x, y) -> (x - 1, y + 1)),
+      (\(x, y) -> (x, y - 1)),
+      (\(x, y) -> (x, y + 1)),
+      (\(x, y) -> (x + 1, y - 1)),
+      (\(x, y) -> (x + 1, y)),
+      (\(x, y) -> (x + 1, y + 1))
+    ]
+
+isVisible seat = seat == occupied || seat == empty
+
+type CoordUpdater = Coord -> Coord
+
+seatsInDirection :: Grid -> CoordUpdater -> Coord -> [Seat]
+seatsInDirection grid coordUpdater (x, y) =
+  let nextCoord = coordUpdater (x, y)
+      nextSeat = findSeat grid nextCoord
+   in case nextSeat of
+        Nothing -> []
+        Just seat -> seat : seatsInDirection grid coordUpdater nextCoord
+
+findSeat :: Grid -> Coord -> Maybe Seat
 findSeat grid (x, y) =
   do
     row <- grid ^? element y
@@ -67,8 +113,13 @@ occupied = '#'
 
 empty = 'L'
 
-type Grid = [[Char]]
+type Grid = [[Seat]]
 
+type Seat = Char
+
+type Coord = (Int, Int)
+
+testInput :: Grid
 testInput =
   [ "L.LL.LL.LL",
     "LLLLLLL.LL",
@@ -82,6 +133,7 @@ testInput =
     "L.LLLLL.LL"
   ]
 
+input :: Grid
 input =
   [ "LLLLLLLLLL.LLLL.LLLLLLL.LLLLLLL..LLLLLLLLLLLLLLL.LLLLLLLLLLLLLLLLLLL.LLLLLLLLLLLLLL.LL.LLLLLLL",
     "LLLL.LLLLL.LLLLLLLLLLLL.LLLLLLLLLLLLLLLL.LLLLLLL.LLLLLLLLLLL.LLLLLLLLLLLLLLLLL.LLLL.LLLLLLLLLL",
