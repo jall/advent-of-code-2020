@@ -3,19 +3,51 @@ module Day_10
   )
 where
 
+import Data.Function.Memoize (memoFix)
 import Data.List (sort)
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Debug.Trace (trace)
+import Utils (mapWithIndex)
 
 solution :: (Maybe String, Maybe String)
 solution =
-  let adapterJoltages = sort testInput
+  let adapterJoltages = sort input
       deviceJoltage = last adapterJoltages + 3
       joltages = 0 : adapterJoltages ++ [deviceJoltage]
-      differences = [b - a | (a, b) <- zipAdjacent joltages]
-      oneJoltDifferences = countIf (== 1) differences
-      threeJoltDifferences = countIf (== 3) differences
-   in ( Just . show $ oneJoltDifferences * threeJoltDifferences,
-        Nothing
+   in ( Just . show $
+          let differences = [b - a | (a, b) <- zipAdjacent joltages]
+              oneJoltDifferences = countIf (== 1) differences
+              threeJoltDifferences = countIf (== 3) differences
+           in oneJoltDifferences * threeJoltDifferences,
+        Just . show $
+          let nodes =
+                Map.fromList $
+                  mapWithIndex
+                    ( \parent i ->
+                        let children = filter (<= (parent + 3)) $ drop (i + 1) joltages
+                         in (parent, children)
+                    )
+                    joltages
+              countPaths = memoFix (countChildPaths nodes)
+           in countPaths 0
       )
+
+-- `recur` is an open recursive parameter.
+-- To prevent every path traversal happening (~1 trillion calls),
+-- we need to memoize the paths counted so far (only 140 of them).
+-- However, we need to pass the memoized function inside itself so it can be recursed on.
+-- I haven't fully wrapped my head around this, but I think the memoize'd "datastore" and
+-- the recursive function both need references to each other.
+-- This answer has lots to chew on: https://stackoverflow.com/a/3209189
+countChildPaths :: Map Int [Int] -> (Int -> Int) -> Int -> Int
+countChildPaths nodes recur parent
+  | Map.notMember parent nodes = 0
+  | otherwise =
+    let children = nodes Map.! parent
+     in if null children
+          then 1
+          else sum $ map recur children
 
 countIf :: (a -> Bool) -> [a] -> Int
 countIf p = length . filter p

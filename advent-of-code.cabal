@@ -34,6 +34,7 @@ library
       Day_08
       Day_09
       Day_10
+      Utils
   other-modules:
       Paths_advent_of_code
   hs-source-dirs:
@@ -44,6 +45,7 @@ library
     , containers
     , either
     , lens
+    , memoize
     , raw-strings-qq
     , regex-pcre
     , sort
@@ -64,6 +66,7 @@ executable advent-of-code-exe
     , containers
     , either
     , lens
+    , memoize
     , raw-strings-qq
     , regex-pcre
     , sort
@@ -85,6 +88,7 @@ test-suite advent-of-code-test
     , containers
     , either
     , lens
+    , memoize
     , raw-strings-qq
     , regex-pcre
     , sort
