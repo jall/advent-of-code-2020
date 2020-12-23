@@ -37,6 +37,7 @@ library
       Day_11
       Day_12
       Day_13
+      Day_14
       Utils
   other-modules:
       Paths_advent_of_code
