@@ -25,6 +25,7 @@ findFirstTimeAfter earliestTime bus =
 
 -- I cheated & am using this approach for this question
 -- https://old.reddit.com/r/adventofcode/comments/kcb3bb/2020_day_13_part_2_can_anyone_tell_my_why_this/
+-- https://en.wikipedia.org/wiki/Chinese_remainder_theorem#Search_by_sieving
 findSubsequentBusesTime :: [(ID, Position)] -> Time -> Time -> Int
 findSubsequentBusesTime [] currentTime _ = currentTime
 findSubsequentBusesTime ((id, offset) : buses) currentTime period =
