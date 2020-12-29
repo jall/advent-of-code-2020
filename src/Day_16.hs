@@ -3,15 +3,22 @@ module Day_16
   )
 where
 
-import Data.List (find)
+import Data.Bifunctor (first, second)
+import Data.List (delete, find, findIndices, isPrefixOf, partition)
 import Data.Maybe (mapMaybe)
 
 solution :: (Maybe String, Maybe String)
 solution =
-  let (constraints, _, nearbyTickets) = input
+  let (constraints, yourTicket, nearbyTickets) = input
       bounds = concatMap snd constraints
    in ( Just . show $ sum $ mapMaybe (findInvalidField bounds) nearbyTickets,
-        Nothing
+        Just . show $
+          let validTickets = filter (isValid bounds) nearbyTickets
+              fieldColumns = map (\n -> map (!! n) validTickets) [0 .. (length yourTicket - 1)]
+              possiblePositions = map (identifyPossiblePositions fieldColumns) constraints
+              fieldPositions = assignPossibilities possiblePositions []
+              departurePositions = map snd $ filter (isPrefixOf "departure" . fst) fieldPositions
+           in product $ map (yourTicket !!) departurePositions
       )
 
 findInvalidField :: [Bounds] -> Ticket -> Maybe Field
@@ -20,9 +27,37 @@ findInvalidField bounds = find (\field -> (not . any (isWithinBounds field)) bou
 isWithinBounds :: Field -> Bounds -> Bool
 isWithinBounds field (bottom, top) = bottom <= field && field <= top
 
+isValid :: [Bounds] -> Ticket -> Bool
+isValid bounds = all (\field -> any (isWithinBounds field) bounds)
+
+identifyPossiblePositions :: [[Field]] -> Constraint -> PossiblePositions
+identifyPossiblePositions columns (name, bounds) =
+  let indices = findIndices (isValid bounds) columns
+   in (name, indices)
+
+assignPossibilities :: [PossiblePositions] -> [CertainPosition] -> [CertainPosition]
+assignPossibilities [] deduced = deduced
+assignPossibilities possibilities deduced =
+  let (singles, multiples) = partition (\(_, positions) -> length positions == 1) possibilities
+      certainPositions = map (\(name, position : _) -> (name, position)) singles
+   in if null certainPositions
+        then deduced
+        else assignPossibilities (removePositions (map snd certainPositions) possibilities) (certainPositions ++ deduced)
+
+removePositions :: [Position] -> [PossiblePositions] -> [PossiblePositions]
+removePositions toRemove = map (second (filter (`notElem` toRemove)))
+
+type PossiblePositions = (Name, [Position])
+
+type CertainPosition = (Name, Position)
+
+type Position = Int
+
 type Bounds = (Int, Int)
 
-type Constraint = (String, [Bounds])
+type Name = String
+
+type Constraint = (Name, [Bounds])
 
 type Ticket = [Field]
 
