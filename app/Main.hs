@@ -16,6 +16,7 @@ import qualified Day_11
 import qualified Day_12
 import qualified Day_13
 import qualified Day_14
+import qualified Day_15
 import Utils (mapWithIndex)
 
 main :: IO ()
@@ -38,9 +39,10 @@ main =
           --   Day_11.solution,
           --   Day_12.solution,
           --   Day_13.solution,
-          --   Day_14.solution
+          --   Day_14.solution,
+          --   Day_15.solution
           -- ]
-          [Day_14.solution]
+          [Day_15.solution]
 
 formatDay :: (Maybe String, Maybe String) -> Int -> [String]
 formatDay (part1, part2) index = do
