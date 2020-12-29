@@ -9,26 +9,23 @@ import Debug.Trace (trace)
 
 solution :: (Maybe String, Maybe String)
 solution =
-  ( Just . show $
-      let initial = input
-          numberToCheck = 30000000
-          initialMemoryTuples = zip initial (zip [1 ..] (repeat 0))
-          starterRounds =
-            map
-              ( \(value, (turn, _)) ->
-                  (turn, value, Data.Map.fromList $ take turn initialMemoryTuples)
-              )
-              initialMemoryTuples
-          starterRound =
-            let turn = length initial
-                value = last initial
-                memory = Data.Map.fromList initialMemoryTuples
-             in (turn + 1, value, memory)
-          rounds = starterRounds ++ iterate nextRound starterRound
-          (_, finalNumber, _) = rounds !! numberToCheck
-       in finalNumber,
-    Nothing
-  )
+  let initial = input
+      initialMemoryTuples = zip initial (zip [1 ..] (repeat 0))
+      starterRounds =
+        map
+          ( \(value, (turn, _)) ->
+              (turn, value, Data.Map.fromList $ take turn initialMemoryTuples)
+          )
+          initialMemoryTuples
+      starterRound =
+        let turn = length initial
+            value = last initial
+            memory = Data.Map.fromList initialMemoryTuples
+         in (turn + 1, value, memory)
+      rounds = starterRounds ++ iterate nextRound starterRound
+   in ( Just . show $ let (_, finalNumber, _) = rounds !! 2020 in finalNumber,
+        Just . show $ let (_, finalNumber, _) = rounds !! 30000000 in finalNumber
+      )
 
 nextRound :: Round -> Round
 nextRound (turn, value, memory) =
