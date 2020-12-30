@@ -14,13 +14,14 @@ import qualified Day_13
 import qualified Day_14
 import qualified Day_15
 import qualified Day_16
+import qualified Day_17
 import Test.Tasty
 import Test.Tasty.HUnit
 
 main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "Tests" [day1, day2, day3, day4, day5, day6, day7, day8, day9, day10, day11, day12, day13, day14, day15, day16]
+tests = testGroup "Tests" [day1, day2, day3, day4, day5, day6, day7, day8, day9, day10, day11, day12, day13, day14, day15, day16, day17]
 
 day1 = testCase "Day 1" $ assertEqual "" (Just "252724", Just "276912720") Day_01.solution
 
@@ -53,5 +54,7 @@ day14 = testCase "Day 14" $ assertEqual "" (Just "10452688630537", Just "2881082
 day15 = testCase "Day 15" $ assertEqual "" (Just "1373", Just "112458") Day_15.solution
 
 day16 = testCase "Day 16" $ assertEqual "" (Just "24110", Just "6766503490793") Day_16.solution
+
+day17 = testCase "Day 17" $ assertEqual "" (Just "324", Nothing) Day_17.solution
 
 -- dayXX = testCase "Day XX" $ assertEqual "" (Nothing, Nothing) Day_XX.solution

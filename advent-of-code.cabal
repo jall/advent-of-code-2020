@@ -40,17 +40,19 @@ library
       Day_14
       Day_15
       Day_16
+      Day_17
       Utils
   other-modules:
       Paths_advent_of_code
   hs-source-dirs:
       src
-  default-extensions: NamedFieldPuns NegativeLiterals QuasiQuotes
+  default-extensions: FlexibleInstances NamedFieldPuns NegativeLiterals QuasiQuotes
   build-depends:
       base >=4.7 && <5
     , containers
     , either
     , lens
+    , linear
     , matrix
     , memoize
     , raw-strings-qq
@@ -65,7 +67,7 @@ executable advent-of-code-exe
       Paths_advent_of_code
   hs-source-dirs:
       app
-  default-extensions: NamedFieldPuns NegativeLiterals QuasiQuotes
+  default-extensions: FlexibleInstances NamedFieldPuns NegativeLiterals QuasiQuotes
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       advent-of-code
@@ -73,6 +75,7 @@ executable advent-of-code-exe
     , containers
     , either
     , lens
+    , linear
     , matrix
     , memoize
     , raw-strings-qq
@@ -88,7 +91,7 @@ test-suite advent-of-code-test
       Paths_advent_of_code
   hs-source-dirs:
       test
-  default-extensions: NamedFieldPuns NegativeLiterals QuasiQuotes
+  default-extensions: FlexibleInstances NamedFieldPuns NegativeLiterals QuasiQuotes
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       advent-of-code
@@ -96,6 +99,7 @@ test-suite advent-of-code-test
     , containers
     , either
     , lens
+    , linear
     , matrix
     , memoize
     , raw-strings-qq

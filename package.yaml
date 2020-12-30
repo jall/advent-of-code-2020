@@ -23,6 +23,7 @@ dependencies:
   - containers
   - either
   - lens
+  - linear
   - matrix
   - memoize
   - raw-strings-qq
