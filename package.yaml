@@ -32,6 +32,7 @@ dependencies:
   - split
 
 default-extensions:
+  - FlexibleInstances
   - NamedFieldPuns
   - NegativeLiterals
   - QuasiQuotes
