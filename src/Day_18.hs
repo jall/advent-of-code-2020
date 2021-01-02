@@ -1,66 +1,51 @@
 module Day_18 (solution) where
 
 import Control.Monad
-import Debug.Trace
-import Text.Parsec.Char (endOfLine)
+import Data.Either (rights)
+import Text.Parsec.String
 import Text.ParserCombinators.Parsec
 
 solution :: (Maybe String, Maybe String)
 solution =
-  let statements = testInput
-   in ( Just . show $ map run statements,
-        Just . show $ run "1 + (2 * 3) + 4"
+  let statements = input
+   in ( Just . show $ sum $ rights $ map run statements,
+        Nothing
       )
 
--- Problems
--- - Right associative not left
--- - Paranthenses are ignored rather than gathering data
-
 run :: String -> Either ParseError Integer
-run s = trace (show s) $ eval <$> parse parser "run" s
+run s = eval <$> parse (do e <- expression; eof; return e) "run" s
 
 eval :: Expression -> Integer
-eval (Integer a) = a
-eval (Sum a b) = a + eval b
-eval (Product a b) = a * eval b
-
-parser :: Parser Expression
-parser = do
-  expr <- expression
-  eof
-  return $ trace (show expr) expr
+eval (Integer x) = x
+eval (Sum l r) = eval l + eval r
+eval (Product l r) = eval l * eval r
 
 expression :: Parser Expression
-expression =
-  try parentheses
-    <|> try binaryOperator
-    <|> number
-    <?> "expression"
+expression = chainl1 term binaryOp
+  where
+    term = value <|> parentheses expression
+    value = Integer <$> number
+    binaryOp = sumOp <|> productOp
+    sumOp = Sum <$ symbol "+"
+    productOp = Product <$ symbol "*"
 
-number :: Parser Expression
-number = Integer . read <$> many1 digit
+number :: Parser Integer
+number = lexeme $ read <$> many1 digit
 
-binaryOperator :: Parser Expression
-binaryOperator = do
-  Integer a <- number
-  void spaces
-  op <- oneOf "+*"
-  void spaces
-  b <- expression
-  return $ case op of
-    '+' -> Sum a b
-    '*' -> Product a b
+parentheses :: Parser a -> Parser a
+parentheses = between (symbol "(") (symbol ")")
 
-parentheses :: Parser Expression
-parentheses = do
-  void $ char '('
-  void spaces
-  expr <- expression
-  void spaces
-  void $ char ')'
-  return expr
+symbol :: String -> Parser String
+symbol = lexeme . string
 
-data Expression = Integer Integer | Sum Integer Expression | Product Integer Expression deriving (Show)
+lexeme :: Parser a -> Parser a
+lexeme p = p <* spaces
+
+data Expression
+  = Integer Integer
+  | Sum Expression Expression
+  | Product Expression Expression
+  deriving (Show)
 
 testInput =
   [ "1 + 2 * 3 + 4 * 5 + 6",
