@@ -1,62 +1,70 @@
-module Day_18
-  ( solution,
-  )
-where
+module Day_18 (solution) where
 
-import Data.Char (isDigit, isSpace)
+import Control.Monad
+import Debug.Trace
+import Text.Parsec.Char (endOfLine)
+import Text.ParserCombinators.Parsec
 
 solution :: (Maybe String, Maybe String)
 solution =
   let statements = testInput
-   in ( Just . show $ map (eval . (`parse` 0) . tokenise) statements,
-        Nothing
+   in ( Just . show $ map run statements,
+        Just . show $ run "1 + (2 * 3) + 4"
       )
 
+-- Problems
+-- - Right associative not left
+-- - Paranthenses are ignored rather than gathering data
+
+run :: String -> Either ParseError Integer
+run s = trace (show s) $ eval <$> parse parser "run" s
+
 eval :: Expression -> Integer
-eval (Value a) = a
-eval (Sum a b) = eval a + eval b
-eval (Product a b) = eval a * eval b
+eval (Integer a) = a
+eval (Sum a b) = a + eval b
+eval (Product a b) = a * eval b
 
-parse :: [Token] -> Int -> Expression
-parse tokens current
-  | current >= length tokens = error "Exceeded token list!"
-  | otherwise =
-    let token = tokens !! current
-     in case token of
-          Int i -> Value i
-          Operator op ->
-            let previous = parse tokens (current - 1)
-                next = parse tokens (current + 1)
-             in case op of
-                  "+" -> Sum previous next
-                  "*" -> Product previous next
-                  _ -> error $ "Cannot parse op" ++ op
-          _ -> error $ "Cannot parse token" ++ show token
+parser :: Parser Expression
+parser = do
+  expr <- expression
+  eof
+  return $ trace (show expr) expr
 
-tokenise :: String -> [Token]
-tokenise "" = []
-tokenise (c : s)
-  | isSpace c = tokenise s
-  | isDigit c =
-    let subsequentDigits = takeWhile isDigit s
-        value = read (c : subsequentDigits) :: Integer
-        remainder = drop (length subsequentDigits) s
-     in Int value : tokenise remainder
-  | c == '+' = Operator "+" : tokenise s
-  | c == '*' = Operator "*" : tokenise s
-  | c == '(' = Parenthesis Open : tokenise s
-  | c == ')' = Parenthesis Close : tokenise s
-  | otherwise = error $ "Cannot tokenise" ++ [c]
+expression :: Parser Expression
+expression =
+  try parentheses
+    <|> try binaryOperator
+    <|> number
+    <?> "expression"
 
-data Expression = Value Integer | Sum Expression Expression | Product Expression Expression | End deriving (Show)
+number :: Parser Expression
+number = Integer . read <$> many1 digit
 
-data Token = Operator String | Parenthesis Direction | Int Integer deriving (Show)
+binaryOperator :: Parser Expression
+binaryOperator = do
+  Integer a <- number
+  void spaces
+  op <- oneOf "+*"
+  void spaces
+  b <- expression
+  return $ case op of
+    '+' -> Sum a b
+    '*' -> Product a b
 
-data Direction = Open | Close deriving (Show)
+parentheses :: Parser Expression
+parentheses = do
+  void $ char '('
+  void spaces
+  expr <- expression
+  void spaces
+  void $ char ')'
+  return expr
+
+data Expression = Integer Integer | Sum Integer Expression | Product Integer Expression deriving (Show)
 
 testInput =
-  [ "1 + 2 * 3 + 4 * 5 + 6"
-  -- "5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))"
+  [ "1 + 2 * 3 + 4 * 5 + 6",
+    "5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))"
   ]
 
 input =

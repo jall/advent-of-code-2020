@@ -56,6 +56,7 @@ library
     , linear
     , matrix
     , memoize
+    , parsec
     , raw-strings-qq
     , regex-pcre
     , sort
@@ -79,6 +80,7 @@ executable advent-of-code-exe
     , linear
     , matrix
     , memoize
+    , parsec
     , raw-strings-qq
     , regex-pcre
     , sort
@@ -103,6 +105,7 @@ test-suite advent-of-code-test
     , linear
     , matrix
     , memoize
+    , parsec
     , raw-strings-qq
     , regex-pcre
     , sort
