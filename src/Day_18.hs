@@ -8,26 +8,38 @@ import Text.ParserCombinators.Parsec
 solution :: (Maybe String, Maybe String)
 solution =
   let statements = input
-   in ( Just . show $ sum $ rights $ map run statements,
-        Nothing
+   in ( Just . show $ sum $ rights $ map (run expressionNoPrecedence) statements,
+        Just . show $ sum $ rights $ map (run expressionSumPrecedence) statements
       )
 
-run :: String -> Either ParseError Integer
-run s = eval <$> parse (do e <- expression; eof; return e) "run" s
+run :: Parser Expression -> String -> Either ParseError Integer
+run parser s = eval <$> parse (do expr <- parser; eof; return expr) "run" s
 
 eval :: Expression -> Integer
 eval (Integer x) = x
 eval (Sum l r) = eval l + eval r
 eval (Product l r) = eval l * eval r
 
-expression :: Parser Expression
-expression = chainl1 term binaryOp
+expressionNoPrecedence :: Parser Expression
+expressionNoPrecedence = chainl1 term binaryOp
   where
-    term = value <|> parentheses expression
-    value = Integer <$> number
+    term = value <|> parentheses expressionNoPrecedence
     binaryOp = sumOp <|> productOp
-    sumOp = Sum <$ symbol "+"
-    productOp = Product <$ symbol "*"
+
+expressionSumPrecedence :: Parser Expression
+expressionSumPrecedence = chainl1 factor productOp
+  where
+    factor = chainl1 term sumOp
+    term = value <|> parentheses expressionSumPrecedence
+
+value :: Parser Expression
+value = Integer <$> number
+
+sumOp :: Parser (Expression -> Expression -> Expression)
+sumOp = Sum <$ symbol "+"
+
+productOp :: Parser (Expression -> Expression -> Expression)
+productOp = Product <$ symbol "*"
 
 number :: Parser Integer
 number = lexeme $ read <$> many1 digit
