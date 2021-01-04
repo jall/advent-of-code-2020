@@ -61,6 +61,6 @@ day17 = testCase "Day 17" $ assertEqual "" (Just "324", Just "1836") Day_17.solu
 
 day18 = testCase "Day 18" $ assertEqual "" (Just "464478013511", Just "85660197232452") Day_18.solution
 
-day19 = testCase "Day 19" $ assertEqual "" (Nothing, Nothing) Day_19.solution
+day19 = testCase "Day 19" $ assertEqual "" (Just "156", Just "363") Day_19.solution
 
 -- dayXX = testCase "Day XX" $ assertEqual "" (Nothing, Nothing) Day_XX.solution
