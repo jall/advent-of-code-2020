@@ -3,29 +3,41 @@ module Day_19 (solution) where
 import Control.Monad (foldM)
 import Data.List (find)
 import Data.List.Split (splitOn)
-import Data.Map (Map)
+import Data.Map (Map, (!))
 import qualified Data.Map as Map
-import Data.Maybe (fromMaybe, isJust, mapMaybe)
+import Data.Maybe (fromJust, fromMaybe, isJust, mapMaybe)
 import Text.RawString.QQ
+
+-- Incorrectly matches aaaabbaaaabbaaa
+
+-- Next steps
+-- - Get applyRule to return all possible results, not just the first match?
+-- - https://www.reddit.com/r/adventofcode/comments/khoho1/2020_day_19_part_2_kotlin_why_cant_i_validate/ggmbt6z/
 
 solution :: (Maybe String, Maybe String)
 solution =
   let (rawRules, rawMessages) = input
-      rules = Map.fromList $ map parseRule $ lines rawRules
-      messages = lines rawMessages
-   in ( Just . show $ length $ filter null $ mapMaybe (\message -> applyRule rules message 0) messages,
-        Nothing
+   in ( Just . show $
+          let rules = Map.fromList $ map parseRule $ lines rawRules
+              messages = lines rawMessages
+           in length $ filter isValidMessage $ map (\message -> applyRule rules message 0) messages,
+        Just . show $
+          let rules = Map.fromList $ map (parseRule . replaceWithCycle) $ lines rawRules
+              messages = lines rawMessages
+           in length $ filter isValidMessage $ map (\message -> applyRule rules message 0) messages
       )
 
-applyRule :: Map Id Rule -> Message -> Id -> Maybe Remainder
-applyRule rules [] startingId = Nothing
+isValidMessage :: [String] -> Bool
+isValidMessage = isJust . find (== "")
+
+applyRule :: Map Id Rule -> Message -> Id -> [String]
+applyRule rules "" startingId = []
 applyRule rules message startingId =
-  let rule = rules Map.! startingId
-      matches = foldM (applyRule rules) message
+  let rule = rules ! startingId
+      matches = foldl (\messages id -> concatMap (\m -> applyRule rules m id) messages) [message]
    in case rule of
-        BaseCase value -> if head message == value then Just (tail message) else Nothing
-        Sequence ids -> matches ids
-        OneOf groups -> fromMaybe Nothing $ find isJust $ map matches groups
+        BaseCase value -> if head message == value then [tail message] else []
+        OneOf groups -> concatMap matches groups
 
 parseRule :: String -> (Id, Rule)
 parseRule s =
@@ -36,16 +48,20 @@ parseRule s =
           then BaseCase (head $ read body)
           else
             let groups = map (map read . words) $ splitOn " | " body
-             in if length groups > 1
-                  then OneOf groups
-                  else Sequence (head groups)
+             in OneOf groups
    in (id, rule)
+
+replaceWithCycle :: String -> String
+replaceWithCycle s = case s of
+  "8: 42" -> "8: 42 | 42 8"
+  "11: 42 31" -> "11: 42 31 | 42 11 31"
+  _ -> s
 
 type Message = String
 
 type Remainder = Message
 
-data Rule = Sequence Sequence | OneOf [Sequence] | BaseCase Char deriving (Show)
+data Rule = OneOf [Sequence] | BaseCase Char deriving (Show)
 
 type Sequence = [Id]
 
@@ -64,6 +80,56 @@ bababa
 abbbab
 aaabbb
 aaaabbb|]
+  )
+
+testInput2 :: (String, String)
+testInput2 =
+  ( [r|42: 9 14 | 10 1
+9: 14 27 | 1 26
+10: 23 14 | 28 1
+1: "a"
+11: 42 31
+5: 1 14 | 15 1
+19: 14 1 | 14 14
+12: 24 14 | 19 1
+16: 15 1 | 14 14
+31: 14 17 | 1 13
+6: 14 14 | 1 14
+2: 1 24 | 14 4
+0: 8 11
+13: 14 3 | 1 12
+15: 1 | 14
+17: 14 2 | 1 7
+23: 25 1 | 22 14
+28: 16 1
+4: 1 1
+20: 14 14 | 1 15
+3: 5 14 | 16 1
+27: 1 6 | 14 18
+14: "b"
+21: 14 1 | 1 14
+25: 1 1 | 1 14
+22: 14 14
+8: 42
+26: 14 22 | 1 20
+18: 15 15
+7: 14 5 | 1 21
+24: 14 1|],
+    [r|abbbbbabbbaaaababbaabbbbabababbbabbbbbbabaaaa
+bbabbbbaabaabba
+babbbbaabbbbbabbbbbbaabaaabaaa
+aaabbbbbbaaaabaababaabababbabaaabbababababaaa
+bbbbbbbaaaabbbbaaabbabaaa
+bbbababbbbaaaaaaaabbababaaababaabab
+ababaaaaaabaaab
+ababaaaaabbbaba
+baabbaaaabbaaaababbaababb
+abbbbabbbbaaaababbbbbbaaaababb
+aaaaabbaabaaaaababaa
+aaaabbaaaabbaaa
+aaaabbaabbaaaaaaabbbabbbaaabbaabaaa
+babaaabbbaaabaababbaabababaaab
+aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba|]
   )
 
 input :: (String, String)
