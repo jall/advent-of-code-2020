@@ -43,6 +43,7 @@ library
       Day_17
       Day_18
       Day_19
+      Day_20
       Day_XX
       Utils
   other-modules:
