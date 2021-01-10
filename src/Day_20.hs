@@ -35,15 +35,15 @@ toEdgePairs tiles =
 
 matchesEdges :: [(Id, [Edge])] -> [Edge] -> [Id]
 matchesEdges otherEdges edges =
-  let matches = isJust . find (`elem` edges)
-   in map fst $ filter ((\es -> (matches es) || (matches $ map reverse es)) . snd) otherEdges
+  let matches = isJust . find (`elem` map snd edges)
+   in map fst $ filter ((\cells -> (matches cells) || (matches $ map reverse cells)) . map snd . snd) otherEdges
 
 toEdges :: Tile -> [Edge]
 toEdges tile =
-  let top = head tile
-      bottom = last tile
-      left = map head tile
-      right = map last tile
+  let top = (T, head tile)
+      bottom = (B, last tile)
+      left = (L, map head tile)
+      right = (R, map last tile)
    in [top, right, bottom, left]
 
 parseTile :: String -> (Id, Tile)
@@ -53,7 +53,9 @@ parseTile s =
       id = read firstMatch
    in (id, cells)
 
-type Edge = [Cell]
+data Side = L | R | T | B
+
+type Edge = (Side, [Cell])
 
 type Tile = [[Cell]]
 
