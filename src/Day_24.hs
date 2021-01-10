@@ -1,14 +1,17 @@
 module Day_24 (solution) where
 
 import Data.List (group, sort)
+import qualified Data.Set as S
 
 solution :: (Maybe String, Maybe String)
 solution =
   let paths = map parsePath input
-   in ( Just . show $
-          let grouped = group $ sort $ map (foldl move (0, 0)) paths
-           in length $ filter (odd . length) grouped,
-        Nothing
+      grouped = group $ sort $ map (foldl move (0, 0)) paths
+      initiallyBlack = S.fromList $ map head $ filter (odd . length) grouped
+   in ( Just . show $ S.size initiallyBlack,
+        Just . show $
+          let days = iterate dailyUpdate initiallyBlack
+           in S.size $ days !! 100
       )
 
 move :: Coord -> Direction -> Coord
@@ -34,6 +37,35 @@ oddRow SE = (1, 1)
 oddRow SW = (0, 1)
 oddRow W = (-1, 0)
 oddRow NW = (0, -1)
+
+-- Ripped most of this from Day 17, cba to refactor
+
+dailyUpdate :: S.Set Coord -> S.Set Coord
+dailyUpdate blackTiles =
+  let stillBlack = tilesSurviving blackTiles
+      freshlyBorn = tilesBorn blackTiles
+   in S.union stillBlack freshlyBorn
+
+tilesSurviving :: S.Set Coord -> S.Set Coord
+tilesSurviving blackTiles =
+  S.filter
+    (\tile -> let count = countLiveNeighbours blackTiles tile in count == 1 || count == 2)
+    blackTiles
+
+tilesBorn :: S.Set Coord -> S.Set Coord
+tilesBorn blackTiles =
+  S.filter
+    (\tile -> countLiveNeighbours blackTiles tile == 2)
+    $ deadNeighbours blackTiles
+
+deadNeighbours :: S.Set Coord -> S.Set Coord
+deadNeighbours blackTiles = (`S.difference` blackTiles) $ S.unions $ S.map neighbours blackTiles
+
+countLiveNeighbours :: S.Set Coord -> Coord -> Int
+countLiveNeighbours blackTiles coord = S.size $ S.intersection blackTiles $ neighbours coord
+
+neighbours :: Coord -> S.Set Coord
+neighbours point = S.fromList $ map (move point) [E, SE, SW, W, NW, NE]
 
 parsePath :: String -> Path
 parsePath [] = []
