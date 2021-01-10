@@ -62,7 +62,7 @@ main =
           --   Day_24.solution,
           --   Day_25.solution
           -- ]
-          [Day_21.solution]
+          [Day_22.solution]
 
 formatDay :: (Maybe String, Maybe String) -> Int -> [String]
 formatDay (part1, part2) index = do
