@@ -2,27 +2,54 @@ module Day_22 (solution) where
 
 solution :: (Maybe String, Maybe String)
 solution =
-  let startingDecks = input
-      rounds = iterate playRound startingDecks
+  let startingRound = input
    in ( Just . show $
-          let (one, two) = head $ dropWhile gameUnfinished rounds
-           in if null one then score two else score one,
-        Nothing
+          let rounds = iterate playSimple startingRound
+              finalRound = head $ dropWhile gameUnfinished rounds
+           in score $ winner finalRound,
+        Just . show $
+          let finalRound = playRecursive [] startingRound
+           in score $ winner finalRound
       )
+
+playRecursive :: [Round] -> Round -> Round
+playRecursive previousRounds (ones, []) = (ones, [])
+playRecursive previousRounds ([], twos) = ([], twos)
+playRecursive previousRounds currentRound
+  | currentRound `elem` previousRounds = (fst currentRound, [])
+  | otherwise =
+    let (one : ones, two : twos) = currentRound
+        didOneWin =
+          if length ones >= one && length twos >= two
+            then
+              let (subOne, subTwo) = playRecursive [] (take one ones, take two twos)
+               in null subTwo
+            else one > two
+     in playRecursive (currentRound : previousRounds) (addCardsToWinner didOneWin currentRound)
+
+winner :: Round -> Deck
+winner (one, []) = one
+winner ([], two) = two
 
 score :: Deck -> Int
 score deck = sum $ zipWith (*) (reverse deck) [1 ..]
 
-gameUnfinished :: (Deck, Deck) -> Bool
+gameUnfinished :: Round -> Bool
 gameUnfinished (one, two) = (not . null) one && (not . null) two
 
-playRound :: (Deck, Deck) -> (Deck, Deck)
-playRound ([], two) = ([], two)
-playRound (one, []) = (one, [])
-playRound (one : ones, two : twos) =
-  if one > two
+playSimple :: Round -> Round
+playSimple ([], two) = ([], two)
+playSimple (one, []) = (one, [])
+playSimple round =
+  let (one : _, two : _) = round in addCardsToWinner (one > two) round
+
+addCardsToWinner :: Bool -> Round -> Round
+addCardsToWinner didOneWin (one : ones, two : twos) =
+  if didOneWin
     then (ones ++ [one, two], twos)
     else (ones, twos ++ [two, one])
+
+type Round = (Deck, Deck)
 
 type Deck = [Int]
 
@@ -39,6 +66,15 @@ testInput =
       4,
       7,
       10
+    ]
+  )
+
+infiniteLoopInput :: (Deck, Deck)
+infiniteLoopInput =
+  ( [43, 19],
+    [ 2,
+      29,
+      14
     ]
   )
 
