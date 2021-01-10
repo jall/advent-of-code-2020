@@ -44,6 +44,11 @@ library
       Day_18
       Day_19
       Day_20
+      Day_21
+      Day_22
+      Day_23
+      Day_24
+      Day_25
       Day_XX
       Utils
   other-modules:
