@@ -1,42 +1,88 @@
 module Day_23 (solution) where
 
+import Control.Monad
+import Control.Monad.ST
 import Data.List.Split (splitOn)
+import Data.STRef
+import qualified Data.Vector.Unboxed.Mutable as V
+
+-- Part 2 requires a Mutable Vector & the ST monad
+-- Excellent walkthrough of the vector tricks in Part 2
+-- https://work.njae.me.uk/2021/01/08/advent-of-code-2020-day-23/
 
 solution :: (Maybe String, Maybe String)
 solution =
   let start = input
    in ( Just $
-          let moves = iterate move start
-           in foldl1 (++) $ map show $ after 1 $ moves !! 100,
-        Nothing
+          let numberOfCups = 9
+              numberOfRounds = 100
+              finalState = game start numberOfCups numberOfRounds
+           in foldl1 (++) $ map show $ drop 1 $ scanl (\x _ -> finalState !! x) 1 [1 .. (numberOfCups - 1)],
+        Just . show $
+          let numberOfCups = 1000000
+              numberOfRounds = 10000000
+              finalState = game start numberOfCups numberOfRounds
+              a = finalState !! 1
+              b = finalState !! a
+           in a * b
       )
 
-move :: [Cup] -> [Cup]
-move (current : cups) =
-  let (nextThree, remainder) = splitAt 3 cups
-      destination = findDestinationCup (current - 1) remainder
-      chunks = splitOn [destination] remainder
-      preceeding = head chunks
-      following = last chunks
-   in preceeding ++ destination : nextThree ++ following ++ [current]
+game :: [Cup] -> Int -> Int -> [Int]
+game initial numberOfCups numberOfRounds =
+  runST $
+    do
+      cups <- seed initial numberOfCups
+      forM_
+        [1 .. numberOfRounds]
+        (\_ -> move cups numberOfCups)
+      mapM (V.read cups) [0 .. numberOfCups]
 
-findDestinationCup :: Cup -> [Cup] -> Cup
-findDestinationCup current cups =
-  let lowest = minimum cups
-      highest = maximum cups
-      next = if current - 1 < lowest then highest else current - 1
-   in if current `elem` cups
-        then current
-        else findDestinationCup next cups
+move :: V.MVector s Int -> Int -> ST s ()
+move cups highest =
+  do
+    current <- V.read cups 0
 
-after :: Cup -> [Cup] -> [Cup]
-after cup cups =
-  let chunks = splitOn [cup] cups
-      preceeding = head chunks
-      following = last chunks
-   in following ++ preceeding
+    held1 <- V.read cups current
+    held2 <- V.read cups held1
+    held3 <- V.read cups held2
 
-type Cup = Integer
+    -- Remove the held cups from the list
+    afterHeld <- V.read cups held3
+    V.write cups current afterHeld
+
+    let destination = findDestination (current - 1) highest [held1, held2, held3]
+    afterDestination <- V.read cups destination
+
+    -- Stitch the held cups into their destination
+    -- They're still linked to each other, so only the beginning & end need updating
+    V.write cups destination held1
+    V.write cups held3 afterDestination
+
+    -- Move current to the next item
+    next <- V.read cups current
+    V.write cups 0 next
+
+    return ()
+
+findDestination :: Cup -> Cup -> [Cup] -> Cup
+findDestination 0 highest toSkip = findDestination highest highest toSkip
+findDestination current highest toSkip
+  | current `elem` toSkip = findDestination (current - 1) highest toSkip
+  | otherwise = current
+
+seed :: [Cup] -> Int -> ST s (V.MVector s Int)
+seed initial amountNeeded =
+  do
+    cups <- V.new (amountNeeded + 1)
+    let values = initial ++ [10, 11 ..]
+    let cupAndSubsequentCupPairs = zip values $ tail values
+    forM_ (take amountNeeded cupAndSubsequentCupPairs) $ uncurry (V.write cups)
+    let end = if amountNeeded > length initial then amountNeeded else last initial
+    V.write cups 0 (head values)
+    V.write cups end (head values)
+    return cups
+
+type Cup = Int
 
 testInput :: [Cup]
 testInput = [3, 8, 9, 1, 2, 5, 4, 6, 7]

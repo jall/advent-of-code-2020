@@ -69,6 +69,7 @@ library
     , regex-pcre
     , sort
     , split
+    , vector
   default-language: Haskell2010
 
 executable advent-of-code-exe
@@ -93,6 +94,7 @@ executable advent-of-code-exe
     , regex-pcre
     , sort
     , split
+    , vector
   default-language: Haskell2010
 
 test-suite advent-of-code-test
@@ -120,4 +122,5 @@ test-suite advent-of-code-test
     , split
     , tasty
     , tasty-hunit
+    , vector
   default-language: Haskell2010
