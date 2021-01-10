@@ -1,17 +1,43 @@
 module Day_21 (solution) where
 
+import Data.Bifunctor (second)
+import Data.Function (on)
+import Data.List (intercalate, intersect, nub, partition, sortBy)
 import Data.List.Split (splitOn)
 import Text.Regex.PCRE ((=~))
 
 solution :: (Maybe String, Maybe String)
-solution = (Just . show $ map parseLine testInput, Nothing)
+solution =
+  let recipe = map parse input
+      allAllergens = nub $ concatMap snd recipe
+      allergensAndPossibleIngredients = map (\allergen -> (allergen, foldl1 intersect $ map fst $ filter (hasAllergen allergen) recipe)) allAllergens
+   in ( Just . show $
+          let possibleAllergenIngredients = concatMap snd allergensAndPossibleIngredients
+           in length $ concatMap (filter (`notElem` possibleAllergenIngredients) . fst) recipe,
+        Just $
+          let allergenIngredients = deduceAllergenIngredient allergensAndPossibleIngredients
+           in intercalate "," $ map snd $ sortBy (compare `on` fst) allergenIngredients
+      )
 
-parseLine :: String -> ([Ingredient], [Allergen])
-parseLine s =
+deduceAllergenIngredient :: [(Allergen, [Ingredient])] -> [(Allergen, Ingredient)]
+deduceAllergenIngredient [] = []
+deduceAllergenIngredient toProcess =
+  let (singles, multiples) = partition ((== 1) . length . snd) toProcess
+      processed = map (second head) singles
+      ingredients = map snd processed
+   in processed ++ deduceAllergenIngredient (map (second (filter (`notElem` ingredients))) multiples)
+
+hasAllergen :: Allergen -> RecipeLine -> Bool
+hasAllergen allergen (_, allergens) = allergen `elem` allergens
+
+parse :: String -> RecipeLine
+parse s =
   let (_, _, _, rawIngredients : rawAllergens : _) = s =~ "^([a-z ]+)(?: \\(contains ([a-z, ]+)\\))?$" :: (String, String, String, [String])
       ingredients = splitOn " " rawIngredients
       allergens = splitOn ", " rawAllergens
    in (ingredients, allergens)
+
+type RecipeLine = ([Ingredient], [Allergen])
 
 type Ingredient = String
 
