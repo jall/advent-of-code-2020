@@ -11,7 +11,7 @@ solution =
   let (cardPublicKey, doorPublicKey) = input
       doorLoopSize = findLoopSize doorPublicKey subjectNumber
    in ( Just . show $ iterate (transform cardPublicKey) initialValue !! doorLoopSize,
-        Just . show $ doorLoopSize
+        Nothing
       )
 
 findLoopSize :: PublicKey -> Int -> Int
